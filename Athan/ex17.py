@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+# mute (annoying) warnings from reindexing
+
 N = 100_000
 
 # Set up random variables
@@ -50,34 +52,39 @@ df_z31 = df[df["z3"] == 1]
 # Calculate probabilities. In all cases, we calculate P(y = 1|x, z):
 # Very provisional (I get that it's messy lol), just for the sake of understanding the exercises
 
-# P(y | x = 0, z1 = 0), denote P_0 --> eq. 42
-p_y1_x0_z10 = df_z30[(df["y"] == 1) & (df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z30.shape[0]
-p_x0 = df_z30[df["x"] == 0].shape[0] / df_z30.shape[0]
-p_z30 = df_z30.shape[0] / N
-p_y_z30 = p_y1_x0_z10 * p_z30 / p_x0
+for (x, z1) in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+    # P(y | x = 0, z1 = 0), denote P_0 --> eq. 42
+    p_y1_x0_z10 = df_z30[(df["y"] == 1) & (df["x"] == x) & (df["z1"] == z1)].shape[0] / df_z30.shape[0]
+    p_x0 = df_z30[df["x"] == x].shape[0] / df_z30.shape[0]
+    p_z30 = df_z30.shape[0] / N
+    p_y_z30 = p_y1_x0_z10 * p_z30 / p_x0
 
-p_y1_x0_z10 = df_z31[(df["y"] == 1) & (df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z31.shape[0]
-p_x0 = df_z31[df["x"] == 0].shape[0] / df_z31.shape[0]
-p_z31 = df_z31.shape[0] / N
-p_y_z31 = p_y1_x0_z10 * p_z31 / p_x0
+    p_y1_x0_z10 = df_z31[(df["y"] == 1) & (df["x"] == x) & (df["z1"] == z1)].shape[0] / df_z31.shape[0]
+    p_x0 = df_z31[df["x"] == x].shape[0] / df_z31.shape[0]
+    p_z31 = df_z31.shape[0] / N
+    p_y_z31 = p_y1_x0_z10 * p_z31 / p_x0
 
-numerator = p_y_z30 + p_y_z31
-
-
-p_z10_x0_z30 = df_z30[(df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z30.shape[0]
-p_x0_z30 = df_z30[df["x"] == 0].shape[0] / df_z30.shape[0]
-
-p_z10_x0_z31 = df_z31[(df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z30.shape[0]
-p_x0_z31 = df_z31[df["x"] == 0].shape[0] / df_z30.shape[0]
-
-denominator = (p_z10_x0_z30 / p_x0_z30) * p_z30 + (p_z10_x0_z31 / p_x0_z31) * p_z31
-
-eq42 = numerator / denominator
+    numerator = p_y_z30 + p_y_z31
 
 
-# eq. 43
-p_z1_x_y = df[(df["z1"] == 0) & (df["x"] == 0) & (df["y"] == 1)].shape[0] / N
-p_x_y = df[(df["x"] == 0) & (df["y"] == 1)].shape[0] / N
-numerator = df["y"].mean() * (p_z1_x_y / p_x_y)
+    p_z10_x0_z30 = df_z30[(df["x"] == x) & (df["z1"] == z1)].shape[0] / df_z30.shape[0]
+    p_x0_z30 = df_z30[df["x"] == x].shape[0] / df_z30.shape[0]
 
-eq43 = numerator / denominator
+    p_z10_x0_z31 = df_z31[(df["x"] == x) & (df["z1"] == z1)].shape[0] / df_z30.shape[0]
+    p_x0_z31 = df_z31[df["x"] == x].shape[0] / df_z30.shape[0]
+
+    denominator = (p_z10_x0_z30 / p_x0_z30) * p_z30 + (p_z10_x0_z31 / p_x0_z31) * p_z31
+
+    eq42 = numerator / denominator
+
+
+    # eq. 43
+    p_z1_x_y = df[(df["z1"] == z1) & (df["x"] == x) & (df["y"] == 1)].shape[0] / N
+    p_x_y = df[(df["x"] == x) & (df["y"] == 1)].shape[0] / N
+    numerator = df["y"].mean() * (p_z1_x_y / p_x_y)
+
+    eq43 = numerator / denominator
+
+    print(f"P(y = 1 | \hatx = {x}, z1 = {z1}) = eq42: {eq42}; eq43: {eq43}")
+
+print(f"\nSample size: {N}")
