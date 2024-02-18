@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-N = 10_000
+N = 100_000
 
 # Set up random variables
 z3_list = np.random.rand(N)
@@ -43,32 +43,32 @@ for i in range(N):
 z1_list = np.array(z1_list)
 
 df = pd.DataFrame({"z3": z3_list, "x": x_list, "y": y_list, "z1": z1_list})
-df_z30 = df.mask(df["z3"] == 0)
-df_z31 = df.mask(df["z3"] == 1)
+df_z30 = df[df["z3"] == 0]
+df_z31 = df[df["z3"] == 1]
 
 
 # Calculate probabilities. In all cases, we calculate P(y = 1|x, z):
 # Very provisional (I get that it's messy lol), just for the sake of understanding the exercises
 
 # P(y | x = 0, z1 = 0), denote P_0 --> eq. 42
-p_y1_x0_z10 = df_z30.mask((df["y"] == 1) & (df["x"] == 0) & (df["z1"] == 0)).shape[0] / df_z30.shape[0]
-p_x0 = df_z30.mask(df["x"] == 0).shape[0] / df_z30.shape[0]
+p_y1_x0_z10 = df_z30[(df["y"] == 1) & (df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z30.shape[0]
+p_x0 = df_z30[df["x"] == 0].shape[0] / df_z30.shape[0]
 p_z30 = df_z30.shape[0] / N
 p_y_z30 = p_y1_x0_z10 * p_z30 / p_x0
 
-p_y1_x0_z10 = df_z31.mask((df["y"] == 1) & (df["x"] == 0) & (df["z1"] == 0)).shape[0] / df_z31.shape[0]
-p_x0 = df_z31.mask(df["x"] == 0).shape[0] / df_z31.shape[0]
+p_y1_x0_z10 = df_z31[(df["y"] == 1) & (df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z31.shape[0]
+p_x0 = df_z31[df["x"] == 0].shape[0] / df_z31.shape[0]
 p_z31 = df_z31.shape[0] / N
 p_y_z31 = p_y1_x0_z10 * p_z31 / p_x0
 
 numerator = p_y_z30 + p_y_z31
 
 
-p_z10_x0_z30 = df_z30.mask((df["x"] == 0) & (df["z1"] == 0)).shape[0] / df_z30.shape[0]
-p_x0_z30 = df_z30.mask(df["x"] == 0).shape[0] / df_z30.shape[0]
+p_z10_x0_z30 = df_z30[(df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z30.shape[0]
+p_x0_z30 = df_z30[df["x"] == 0].shape[0] / df_z30.shape[0]
 
-p_z10_x0_z31 = df_z31.mask((df["x"] == 0) & (df["z1"] == 0)).shape[0] / df_z30.shape[0]
-p_x0_z31 = df_z31.mask(df["x"] == 0).shape[0] / df_z30.shape[0]
+p_z10_x0_z31 = df_z31[(df["x"] == 0) & (df["z1"] == 0)].shape[0] / df_z30.shape[0]
+p_x0_z31 = df_z31[df["x"] == 0].shape[0] / df_z30.shape[0]
 
 denominator = (p_z10_x0_z30 / p_x0_z30) * p_z30 + (p_z10_x0_z31 / p_x0_z31) * p_z31
 
@@ -76,8 +76,8 @@ eq42 = numerator / denominator
 
 
 # eq. 43
-p_z1_x_y = df.mask((df["z1"] == 0) & (df["x"] == 0) & (df["y"] == 1)).shape[0] / N
-p_x_y = df.mask((df["x"] == 0) & (df["y"] == 1)).shape[0] / N
+p_z1_x_y = df[(df["z1"] == 0) & (df["x"] == 0) & (df["y"] == 1)].shape[0] / N
+p_x_y = df[(df["x"] == 0) & (df["y"] == 1)].shape[0] / N
 numerator = df["y"].mean() * (p_z1_x_y / p_x_y)
 
 eq43 = numerator / denominator
