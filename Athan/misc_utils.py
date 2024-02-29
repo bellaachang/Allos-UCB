@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 
+# pandas complains whenever you mask a dataframe without reindexing
+import warnings
+warnings.simplefilter(action='ignore', category=UserWarning) 
+
 """
 Some utilities for calculating conditional probabilities from a pandas dataframe.
 Created by Athan Massouras
@@ -35,7 +39,10 @@ def cond_prob(df: pd.DataFrame, vars: dict, conds: dict = None) -> float:
         except KeyError:
             print(f"Invalid key: {cond}. Variables and conditions must have the same names as columns in df.")
 
-    return df[var_mask].size / df[cond_mask].size
+    result = df[var_mask].size / df[cond_mask].size
+    assert 0 <= result, "Calculation failed: probability is negative."
+    assert 1 >= result, "Calculation failed: probability is greater than 1."
+    return result
 
 
 def cartesian_product(*arrays):
