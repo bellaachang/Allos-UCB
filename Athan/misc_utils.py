@@ -58,29 +58,42 @@ def cartesian_product(*arrays):
     return arr.reshape(-1, la)
 
 
-def sum_over_var(df: pd.DataFrame, sum_over: set, vars: dict, conds: dict = None) -> float:
+def sum_over_var(df: pd.DataFrame, sum_over: list, queries: list) -> float:
     """
     `sum_over` contains a set of the variables to sum over, vars and conds are similar to the previous function
+    `queries` are pairs of dictionaries (vars, conds), where `vars` are the variables and `conds` the conditions
+    
+    If a summing variable wants to be included in a query, use a dummy value:
+        eg. if we want \sum_{x} P(y = 1 | x, z = 1)P(z = 1), queries = 
+            [({"y": 1}, {"x": -1, "z": 1}), ({"z": 1}, None)]
+        where -1 can be any value (it will be overwritten)
     """
 
     # Get unique values of relevant
-    ordered_sum_values = []
     ordered_sum_uniques = []
+
     for sum_value in sum_over:
         unique_values = df[sum_value].unique()
-        ordered_sum_values.append(sum_value)
         ordered_sum_uniques.append(unique_values)
     
     cart_sum_values = cartesian_product(*ordered_sum_uniques)
 
     prob_sum = 0.
     for sum_values in cart_sum_values:
-        sum_conds = {}
-        for (i, val) in enumerate(sum_values):
-            sum_conds[ordered_sum_values[i]] = val
+        sum_val_map = {}
+        for i in range(len(sum_over)):
+            sum_val_map.update({sum_over[i]: sum_values[i]})
 
-        sum_conds.update(conds)
+        internal_product = 1.
+        for (vars, conds) in queries:
+            for sum_val in sum_val_map.keys():
+                if sum_val in vars:
+                    vars.update({sum_val: sum_val_map[sum_val]})
+                if conds is not None and sum_val in conds:
+                    conds.update({sum_val: sum_val_map[sum_val]})
 
-        prob_sum += cond_prob(df, vars, sum_conds)
+            internal_product *= cond_prob(df, vars, conds)
+
+        prob_sum += internal_product
 
     return prob_sum
